@@ -45,6 +45,25 @@ const AdminDashboard = () => {
   );
   const [totalBorrowedBooks, setTotalBorrowedBooks] = useState(0);
   const [totalReturnedBooks, setTotalReturnedBooks] = useState(0);
+  const [quote, setQuote] = useState("");
+
+  const QUOTES = [
+    "Sách là ngọn đèn sáng bất diệt của trí tuệ con người.",
+    "Đọc sách không những để mở mang trí tuệ mà còn để nuôi dưỡng tâm hồn.",
+    "Một cuốn sách hay là một người bạn tốt.",
+    "Thư viện là kho tàng chứa tất cả của cải tinh thần của loài người.",
+    "Sách mở ra trước mắt tôi những chân trời mới.",
+    "Không có người bạn nào trung thành như một cuốn sách.",
+    "Để cho con một hòm vàng không bằng dạy cho con một quyển sách hay.",
+    "Sách hay, cũng như bạn tốt, ít và được lựa chọn.",
+    "Đọc muôn quyển sách, đi muôn dặm đường.",
+    "Hành trình đọc sách nuôi dưỡng sự trưởng thành, mở ra con đường hướng tới sự xuất sắc và hoàn thiện bản thân.",
+  ];
+
+  useEffect(() => {
+    const randomQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+    setQuote(randomQuote);
+  }, []);
 
   useEffect(() => {
     let numberOfUsers = users.filter((user) => user.role === "User");
@@ -200,14 +219,25 @@ const AdminDashboard = () => {
               </div>
             </div>
 
+            import {FaQuoteLeft} from "react-icons/fa";
+
+            // ... existing imports
+
             {/* Quote */}
-            <div className="hidden xl:flex bg-white p-7 text-lg sm:text-xl xl:text-3xl 2xl:text-4xl min-h-52 font-semibold relative flex-[3] justify-center items-center rounded-2xl border border-[#FDE8EA]">
-              <h4 className="overflow-y-hidden text-[#C41526]">
-                {/* "Hành trình đọc sách nuôi dưỡng sự trưởng thành, mở ra con đường hướng tới
-                sự xuất sắc và hoàn thiện bản thân." */}
-              </h4>
-              <p className="text-gray-700 text-sm sm:text-lg absolute right-[35px] sm:right-[78px] bottom-[10px]">
-                PHC - 20235286
+            <div className="hidden xl:flex relative bg-gradient-to-br from-white to-[#FDE8EA] p-8 text-lg sm:text-xl xl:text-3xl 2xl:text-4xl min-h-52 font-semibold flex-[3] justify-center items-center rounded-2xl border border-[#FDE8EA] text-center shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300">
+
+              {/* Decorative Icon Background */}
+              <FaQuoteLeft className="absolute top-4 left-4 text-6xl text-[#C41526]/10 transform -translate-y-2 -translate-x-2" />
+              <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-[#C41526]/5 rounded-full blur-2xl"></div>
+
+              <div className="relative z-10 max-w-[90%]">
+                <h4 className="text-[#C41526] italic leading-relaxed drop-shadow-sm font-serif">
+                  "{quote}"
+                </h4>
+              </div>
+
+              <p className="text-gray-500/80 text-sm sm:text-base font-normal absolute right-6 bottom-4 italic">
+                — PHC Library System
               </p>
             </div>
           </div>
