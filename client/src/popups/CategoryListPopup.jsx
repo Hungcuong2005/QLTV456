@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import axiosClient from "../api/axiosClient";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import {
@@ -15,9 +16,6 @@ const CategoryListPopup = () => {
     (state) => state?.popup?.addCategoryPopup
   );
 
-  const apiBaseUrl =
-    import.meta?.env?.VITE_API_BASE_URL || "http://localhost:4000";
-
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [justAddedKey, setJustAddedKey] = useState(null);
@@ -27,18 +25,11 @@ const CategoryListPopup = () => {
   const fetchCategories = async (tag = "normal") => {
     try {
       setLoading(true);
-      const res = await fetch(`${apiBaseUrl}/api/v1/category/all`, {
-        method: "GET",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
+      const res = await axiosClient.get("/category/all");
 
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.message || "Không lấy được danh sách!");
-
-      setCategories(data?.categories || []);
+      setCategories(res.data?.categories || []);
     } catch (err) {
-      toast.error(err?.message || "Không lấy được danh sách thể loại!");
+      toast.error(err?.response?.data?.message || "Không lấy được danh sách thể loại!");
     } finally {
       setLoading(false);
     }
@@ -157,9 +148,8 @@ const CategoryListPopup = () => {
                         return (
                           <tr
                             key={rowKey}
-                            className={`hover:bg-gray-50 ${
-                              isJustAdded ? "bg-green-50" : ""
-                            }`}
+                            className={`hover:bg-gray-50 ${isJustAdded ? "bg-green-50" : ""
+                              }`}
                           >
                             <td className="px-3 py-3 align-top">{idx + 1}</td>
                             <td className="px-3 py-3 font-semibold text-gray-900 align-top break-words">

@@ -1,12 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
+import axiosClient from "../../api/axiosClient";
 import { toast } from "react-toastify";
 import { toggleAddNewAdminPopup } from "./popUpSlice";
-
-const API_BASE =
-  import.meta?.env?.VITE_API_BASE_URL || "http://localhost:4000";
-
-const USER_API = `${API_BASE}/api/v1/user`;
 
 const userSlice = createSlice({
   name: "user",
@@ -50,9 +45,7 @@ export const fetchAllUsers = (status = "active") => async (dispatch) => {
   try {
     const safeStatus = encodeURIComponent(status);
 
-    const { data } = await axios.get(`${USER_API}/all?status=${safeStatus}`, {
-      withCredentials: true,
-    });
+    const { data } = await axiosClient.get(`/user/all?status=${safeStatus}`);
 
     dispatch(userSlice.actions.fetchAllUsersSuccess(data.users));
   } catch (err) {
@@ -70,27 +63,26 @@ export const fetchAllUsers = (status = "active") => async (dispatch) => {
  */
 export const addNewAdmin =
   (data, refreshStatus = "active") =>
-  async (dispatch) => {
-    dispatch(userSlice.actions.addNewAdminRequest());
+    async (dispatch) => {
+      dispatch(userSlice.actions.addNewAdminRequest());
 
-    try {
-      const res = await axios.post(`${USER_API}/add/new-admin`, data, {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      try {
+        const res = await axiosClient.post("/user/add/new-admin", data, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
 
-      dispatch(userSlice.actions.addNewAdminSuccess());
-      toast.success(res.data.message);
-      dispatch(toggleAddNewAdminPopup());
+        dispatch(userSlice.actions.addNewAdminSuccess());
+        toast.success(res.data.message);
+        dispatch(toggleAddNewAdminPopup());
 
-      // 👉 refresh lại danh sách user theo tab hiện tại
-      dispatch(fetchAllUsers(refreshStatus));
-    } catch (err) {
-      dispatch(userSlice.actions.addNewAdminFailed());
-      toast.error(err?.response?.data?.message || "Thêm admin thất bại.");
-    }
-  };
+        // 👉 refresh lại danh sách user theo tab hiện tại
+        dispatch(fetchAllUsers(refreshStatus));
+      } catch (err) {
+        dispatch(userSlice.actions.addNewAdminFailed());
+        toast.error(err?.response?.data?.message || "Thêm admin thất bại.");
+      }
+    };
 
 export default userSlice.reducer;

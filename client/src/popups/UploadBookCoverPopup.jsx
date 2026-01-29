@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import axiosClient from "../api/axiosClient";
 import { toast } from "react-toastify";
 
 /**
@@ -8,8 +9,6 @@ import { toast } from "react-toastify";
  * - FormData field: coverImage
  */
 const UploadBookCoverPopup = ({ open, onClose, book, onUpdated }) => {
-  const apiBaseUrl =
-    import.meta?.env?.VITE_API_BASE_URL || "http://localhost:4000";
 
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
@@ -59,18 +58,14 @@ const UploadBookCoverPopup = ({ open, onClose, book, onUpdated }) => {
       const fd = new FormData();
       fd.append("coverImage", file);
 
-      // ⚠️ KHÔNG set Content-Type thủ công, browser sẽ tự set boundary
-      const res = await fetch(
-        `${apiBaseUrl}/api/v1/book/admin/${book._id}/cover`,
-        {
-          method: "PUT",
-          credentials: "include",
-          body: fd,
-        }
+      // ⚠️ axios sẽ tự set Content-Type thành multipart/form-data khi body là FormData
+      const res = await axiosClient.put(
+        `/book/admin/${book._id}/cover`,
+        fd
       );
 
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data?.success) {
+      const data = res.data;
+      if (!data?.success) {
         throw new Error(data?.message || "Cập nhật ảnh thất bại.");
       }
 

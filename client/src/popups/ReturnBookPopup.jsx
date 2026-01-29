@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { toggleReturnBookPopup } from "../store/slices/popUpSlice";
 import PaymentMethodPopup from "./PaymentMethodPopup";
 
-const ReturnBookPopup = ({ borrowId, email, amount = 0, apiBaseUrl = "" }) => {
+const ReturnBookPopup = ({ borrowId, email, amount = 0 }) => {
   const dispatch = useDispatch();
   const [showPayment, setShowPayment] = useState(false);
 
@@ -73,7 +73,6 @@ const ReturnBookPopup = ({ borrowId, email, amount = 0, apiBaseUrl = "" }) => {
           amount={amount}
           borrowId={borrowId}
           email={email}
-          apiBaseUrl={apiBaseUrl}
           onClose={() => {
             setShowPayment(false);
             dispatch(toggleReturnBookPopup());

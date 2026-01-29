@@ -7,7 +7,7 @@ import {
 import { fetchAllBooks, resetBookSlice } from "../store/slices/bookSlice";
 import Header from "../layout/Header";
 import ReadBookPopup from "../popups/ReadBookPopup";
-import axios from "axios";
+import axiosClient from "../api/axiosClient";
 
 const MAX_CATEGORIES = 3;
 
@@ -16,9 +16,6 @@ const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/20
 
 const BookManagementUser = () => {
   const dispatch = useDispatch();
-
-  const apiBaseUrl =
-    import.meta?.env?.VITE_API_BASE_URL || "http://localhost:4000";
 
   // ===== REDUX STATES =====
   const { loading, error, message, books, totalBooks, totalPages } = useSelector(
@@ -43,9 +40,7 @@ const BookManagementUser = () => {
 
   const fetchCategoryMap = async () => {
     try {
-      const res = await axios.get(`${apiBaseUrl}/api/v1/category/all`, {
-        withCredentials: true,
-      });
+      const res = await axiosClient.get("/category/all");
       const list = res?.data?.categories || [];
 
       setCategoriesList(list);
@@ -108,13 +103,13 @@ const BookManagementUser = () => {
 
   // ===== QUERY PARAMS =====
   const queryParams = useMemo(() => {
-    const params = { 
-      page, 
-      limit, 
+    const params = {
+      page,
+      limit,
       sort: sortOption,
       deleted: "active" // User chỉ xem sách active
     };
-    
+
     const keyword = searchedKeyword.trim();
     if (keyword) params.search = keyword;
     if (availabilityFilter !== "all") params.availability = availabilityFilter;

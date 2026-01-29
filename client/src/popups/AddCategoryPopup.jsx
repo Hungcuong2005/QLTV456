@@ -1,9 +1,8 @@
 import React, { useState } from "react";
+import axiosClient from "../api/axiosClient";
 import { toast } from "react-toastify";
 
 const AddCategoryPopup = ({ onAdded, onClose }) => {
-    const apiBaseUrl =
-        import.meta?.env?.VITE_API_BASE_URL || "http://localhost:4000";
 
     const [loading, setLoading] = useState(false);
     const [name, setName] = useState("");
@@ -21,15 +20,12 @@ const AddCategoryPopup = ({ onAdded, onClose }) => {
         try {
             setLoading(true);
 
-            const res = await fetch(`${apiBaseUrl}/api/v1/category/admin/add`, {
-                method: "POST",
-                credentials: "include",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: trimmedName, description }),
+            const res = await axiosClient.post("/category/admin/add", {
+                name: trimmedName,
+                description,
             });
 
-            const data = await res.json().catch(() => ({}));
-            if (!res.ok) throw new Error(data?.message || "Thêm thể loại thất bại!");
+            const data = res.data;
 
             const createdCategory =
                 data?.category ||
@@ -56,7 +52,7 @@ const AddCategoryPopup = ({ onAdded, onClose }) => {
             setName("");
             setDescription("");
         } catch (err) {
-            toast.error(err?.message || "Thêm thể loại thất bại!");
+            toast.error(err?.response?.data?.message || "Thêm thể loại thất bại!");
         } finally {
             setLoading(false);
         }

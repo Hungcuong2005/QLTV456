@@ -1,10 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
+import axiosClient from "../../api/axiosClient";
 import { toggleAddBookPopup } from "./popUpSlice";
 import { toast } from "react-toastify";
-
-const API_BASE = import.meta?.env?.VITE_API_BASE_URL || "http://localhost:4000";
-const BOOK_API = `${API_BASE}/api/v1/book`;
 
 const bookSlice = createSlice({
   name: "book",
@@ -82,8 +79,7 @@ const bookSlice = createSlice({
 export const fetchAllBooks = (params = {}) => async (dispatch) => {
   dispatch(bookSlice.actions.fetchBooksRequest());
   try {
-    const res = await axios.get(`${BOOK_API}/all`, {
-      withCredentials: true,
+    const res = await axiosClient.get("/book/all", {
       params,
     });
 
@@ -109,10 +105,7 @@ export const addBook = (data) => async (dispatch, getState) => {
   dispatch(bookSlice.actions.addBookRequest());
 
   try {
-    const res = await axios.post(`${BOOK_API}/admin/add`, data, {
-      withCredentials: true,
-      headers: { "Content-Type": "application/json" },
-    });
+    const res = await axiosClient.post("/book/admin/add", data);
 
     dispatch(
       bookSlice.actions.addBookSuccess({

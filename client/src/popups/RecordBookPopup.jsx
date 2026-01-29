@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
+import axiosClient from "../api/axiosClient";
 import { useDispatch } from "react-redux";
 import { recordBorrowBook } from "../store/slices/borrowSlice";
 import { toggleRecordBookPopup } from "../store/slices/popUpSlice";
-import axios from "axios";
 import { toast } from "react-toastify";
 
 const RecordBookPopup = ({ bookId }) => {
@@ -11,9 +11,6 @@ const RecordBookPopup = ({ bookId }) => {
   const [availableCopies, setAvailableCopies] = useState([]);
   const [selectedCopyId, setSelectedCopyId] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const apiBaseUrl =
-    import.meta?.env?.VITE_API_BASE_URL || "http://localhost:4000";
 
   // ✅ Lấy danh sách BookCopy available khi mở popup
   useEffect(() => {
@@ -25,9 +22,8 @@ const RecordBookPopup = ({ bookId }) => {
   const fetchAvailableCopies = async () => {
     setLoading(true);
     try {
-      const { data } = await axios.get(
-        `${apiBaseUrl}/api/v1/book/${bookId}/available-copies`,
-        { withCredentials: true }
+      const { data } = await axiosClient.get(
+        `/book/${bookId}/available-copies`
       );
 
       if (data.success && data.copies) {

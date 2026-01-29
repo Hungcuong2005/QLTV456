@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import axios from "axios";
+import axiosClient from "../api/axiosClient";
 import { useDispatch, useSelector } from "react-redux";
 import { addBook } from "../store/slices/bookSlice";
 import { toggleAddBookPopup } from "../store/slices/popUpSlice";
@@ -10,9 +10,6 @@ const MAX_CATEGORIES = 3;
 const AddBookPopup = () => {
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.book);
-
-  const apiBaseUrl =
-    import.meta?.env?.VITE_API_BASE_URL || "http://localhost:4000";
 
   const [isbn, setIsbn] = useState("");
   const [isbnStatus, setIsbnStatus] = useState("idle"); // idle | checking | exists | new
@@ -48,9 +45,7 @@ const AddBookPopup = () => {
   // ✅ load categories
   const fetchCategories = async () => {
     try {
-      const res = await axios.get(`${apiBaseUrl}/api/v1/category/all`, {
-        withCredentials: true,
-      });
+      const res = await axiosClient.get("/category/all");
       setAllCategories(res?.data?.categories || []);
     } catch (err) {
       toast.error(err?.response?.data?.message || "Không tải được thể loại.");
@@ -94,9 +89,9 @@ const AddBookPopup = () => {
     lastCheckedIsbnRef.current = normalized;
 
     try {
-      const { data } = await axios.get(
-        `${apiBaseUrl}/api/v1/book/isbn/${normalized}`,
-        { withCredentials: true, signal }
+      const { data } = await axiosClient.get(
+        `/book/isbn/${normalized}`,
+        { signal }
       );
 
       if (data?.exists && data?.book) {

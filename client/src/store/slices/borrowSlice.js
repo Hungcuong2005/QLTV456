@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
+import axiosClient from "../../api/axiosClient";
 import { toggleRecordBookPopup } from "./popUpSlice";
 import { toast } from "react-toastify";
 
@@ -105,10 +105,8 @@ const borrowSlice = createSlice({
 export const fetchUserBorrowedBooks = () => async (dispatch) => {
   dispatch(borrowSlice.actions.fetchUserBorrowedBooksRequest());
 
-  await axios
-    .get("http://localhost:4000/api/v1/borrow/my-borrowed-books", {
-      withCredentials: true,
-    })
+  await axiosClient
+    .get("/borrow/my-borrowed-books")
     .then((res) => {
       dispatch(
         borrowSlice.actions.fetchUserBorrowedBooksSuccess(
@@ -128,12 +126,9 @@ export const fetchUserBorrowedBooks = () => async (dispatch) => {
 export const fetchAllBorrowedBooks = () => async (dispatch) => {
   dispatch(borrowSlice.actions.fetchAllBorrowedBooksRequest());
 
-  await axios
+  await axiosClient
     .get(
-      "http://localhost:4000/api/v1/borrow/borrowed-books-by-users",
-      {
-        withCredentials: true,
-      }
+      "/borrow/borrowed-books-by-users"
     )
     .then((res) => {
       dispatch(
@@ -155,16 +150,10 @@ export const fetchAllBorrowedBooks = () => async (dispatch) => {
 export const recordBorrowBook = (email, bookId, copyId) => async (dispatch) => {
   dispatch(borrowSlice.actions.recordBookRequest());
 
-  await axios
+  await axiosClient
     .post(
-      `http://localhost:4000/api/v1/borrow/record-borrow-book/${bookId}`,
-      { email, copyId }, // ✅ Gửi cả copyId
-      {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
+      `/borrow/record-borrow-book/${bookId}`,
+      { email, copyId } // ✅ Gửi cả copyId
     )
     .then((res) => {
       dispatch(borrowSlice.actions.recordBookSuccess(res.data.message));
@@ -191,16 +180,10 @@ export const recordBorrowBook = (email, bookId, copyId) => async (dispatch) => {
 export const returnBook = (email, id) => async (dispatch) => {
   dispatch(borrowSlice.actions.returnBookRequest());
 
-  await axios
+  await axiosClient
     .put(
-      `http://localhost:4000/api/v1/borrow/return-borrowed-book/${id}`,
-      { email },
-      {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
+      `/borrow/return-borrowed-book/${id}`,
+      { email }
     )
     .then((res) => {
       dispatch(
@@ -220,10 +203,8 @@ export const returnBook = (email, id) => async (dispatch) => {
 export const renewBorrowedBook = (borrowId) => async (dispatch) => {
   dispatch(borrowSlice.actions.renewBookRequest());
 
-  await axios
-    .post(`http://localhost:4000/api/v1/borrow/renew/${borrowId}`, {}, {
-      withCredentials: true,
-    })
+  await axiosClient
+    .post(`/borrow/renew/${borrowId}`, {})
     .then((res) => {
       dispatch(borrowSlice.actions.renewBookSuccess(res.data.message));
     })

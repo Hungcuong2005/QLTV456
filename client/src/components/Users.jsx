@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import axios from "axios";
+import axiosClient from "../api/axiosClient";
 import { Search, Lock, Unlock, Trash2, RotateCcw } from "lucide-react";
 import { toast } from "react-toastify";
 import { useSelector, useDispatch } from "react-redux";
@@ -13,10 +13,6 @@ const Users = () => {
   const [searchedKeyword, setSearchedKeyword] = useState("");
   const [viewDeleted, setViewDeleted] = useState(false);
   const [loadingMap, setLoadingMap] = useState({});
-
-  const apiBaseUrl =
-    import.meta?.env?.VITE_API_BASE_URL || "http://localhost:4000";
-  const USER_API = `${apiBaseUrl}/api/v1/user`;
 
   const dispatch = useDispatch();
 
@@ -72,10 +68,9 @@ const Users = () => {
       setBusy(u._id, true);
       const nextLocked = !u.isLocked;
 
-      const { data } = await axios.patch(
-        `${USER_API}/${u._id}/lock`,
-        { locked: nextLocked },
-        { withCredentials: true }
+      const { data } = await axiosClient.patch(
+        `/user/${u._id}/lock`,
+        { locked: nextLocked }
       );
 
       toast.success(
@@ -95,10 +90,9 @@ const Users = () => {
     try {
       setBusy(u._id, true);
 
-      const { data } = await axios.patch(
-        `${USER_API}/${u._id}/soft-delete`,
-        {},
-        { withCredentials: true }
+      const { data } = await axiosClient.patch(
+        `/user/${u._id}/soft-delete`,
+        {}
       );
 
       toast.success(data?.message || "Đã xóa người dùng.");
@@ -114,10 +108,9 @@ const Users = () => {
     try {
       setBusy(u._id, true);
 
-      const { data } = await axios.patch(
-        `${USER_API}/${u._id}/restore`,
-        {},
-        { withCredentials: true }
+      const { data } = await axiosClient.patch(
+        `/user/${u._id}/restore`,
+        {}
       );
 
       toast.success(data?.message || "Đã khôi phục người dùng.");
@@ -161,8 +154,8 @@ const Users = () => {
                 type="button"
                 onClick={() => setViewDeleted((v) => !v)}
                 className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold transition border ${viewDeleted
-                    ? "bg-[#FDE8EA] border-[#C41526] text-[#C41526]"
-                    : "bg-white border-gray-200 text-gray-700 hover:border-[#C41526] hover:bg-[#FDE8EA]"
+                  ? "bg-[#FDE8EA] border-[#C41526] text-[#C41526]"
+                  : "bg-white border-gray-200 text-gray-700 hover:border-[#C41526] hover:bg-[#FDE8EA]"
                   }`}
               >
                 {viewDeleted ? "Đã xóa" : "Chưa xóa"}
@@ -267,8 +260,8 @@ const Users = () => {
                                 disabled={isBusy}
                                 onClick={() => handleRestore(u)}
                                 className={`p-2 rounded-lg border border-gray-200 transition ${isBusy
-                                    ? "opacity-50 cursor-not-allowed"
-                                    : "hover:border-[#C41526] hover:bg-[#FDE8EA]"
+                                  ? "opacity-50 cursor-not-allowed"
+                                  : "hover:border-[#C41526] hover:bg-[#FDE8EA]"
                                   }`}
                                 title="Khôi phục"
                               >
@@ -292,8 +285,8 @@ const Users = () => {
                                       disabled={isBusy}
                                       onClick={() => handleLockToggle(u)}
                                       className={`p-2 rounded-lg border border-gray-200 transition ${isBusy
-                                          ? "opacity-50 cursor-not-allowed"
-                                          : "hover:border-[#C41526] hover:bg-[#FDE8EA]"
+                                        ? "opacity-50 cursor-not-allowed"
+                                        : "hover:border-[#C41526] hover:bg-[#FDE8EA]"
                                         }`}
                                       title={
                                         u?.isLocked
@@ -314,8 +307,8 @@ const Users = () => {
                                       disabled={isBusy}
                                       onClick={() => handleDelete(u)}
                                       className={`p-2 rounded-lg border border-gray-200 transition ${isBusy
-                                          ? "opacity-50 cursor-not-allowed"
-                                          : "hover:border-[#C41526] hover:bg-[#FDE8EA]"
+                                        ? "opacity-50 cursor-not-allowed"
+                                        : "hover:border-[#C41526] hover:bg-[#FDE8EA]"
                                         }`}
                                       title="Xóa"
                                     >

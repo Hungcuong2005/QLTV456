@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import axios from "axios";
+import axiosClient from "../api/axiosClient";
 import { useDispatch } from "react-redux";
 import { fetchAllBorrowedBooks } from "../store/slices/borrowSlice"; // giữ nguyên theo project bạn
 
@@ -9,7 +9,6 @@ const PaymentMethodPopup = ({
   onClose,
   borrowId,
   email,
-  apiBaseUrl = "",
 }) => {
   const dispatch = useDispatch();
 
@@ -39,11 +38,10 @@ const PaymentMethodPopup = ({
       setLoading(true);
 
       // ✅ PREPARE theo borrowId
-      const prepareUrl = `${apiBaseUrl}/api/v1/borrow/return/prepare/${borrowId}`;
-      const { data } = await axios.post(
+      const prepareUrl = `/borrow/return/prepare/${borrowId}`;
+      const { data } = await axiosClient.post(
         prepareUrl,
-        { email, method },
-        { withCredentials: true }
+        { email, method }
       );
 
       if (method === "vnpay") {
@@ -59,8 +57,8 @@ const PaymentMethodPopup = ({
         const realAmount = data?.amount ?? amount;
 
         // ✅ CONFIRM CASH theo borrowId
-        const confirmUrl = `${apiBaseUrl}/api/v1/borrow/return/cash/confirm/${borrowId}`;
-        await axios.post(confirmUrl, { email }, { withCredentials: true });
+        const confirmUrl = `/borrow/return/cash/confirm/${borrowId}`;
+        await axiosClient.post(confirmUrl, { email });
 
         onClose?.();
         await dispatch(fetchAllBorrowedBooks());

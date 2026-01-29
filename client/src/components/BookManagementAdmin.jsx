@@ -18,7 +18,7 @@ import CategoryListPopup from "../popups/CategoryListPopup";
 import ReadBookPopup from "../popups/ReadBookPopup";
 import RecordBookPopup from "../popups/RecordBookPopup";
 import UploadBookCoverPopup from "../popups/UploadBookCoverPopup";
-import axios from "axios";
+import axiosClient from "../api/axiosClient";
 
 const MAX_CATEGORIES = 3;
 
@@ -28,9 +28,6 @@ const PLACEHOLDER_IMAGE =
 
 const BookManagementAdmin = () => {
   const dispatch = useDispatch();
-
-  const apiBaseUrl =
-    import.meta?.env?.VITE_API_BASE_URL || "http://localhost:4000";
 
   // ===== REDUX STATES =====
   const { loading, error, message, books, totalBooks, totalPages } = useSelector(
@@ -82,9 +79,7 @@ const BookManagementAdmin = () => {
 
   const fetchCategoryMap = async () => {
     try {
-      const res = await axios.get(`${apiBaseUrl}/api/v1/category/all`, {
-        withCredentials: true,
-      });
+      const res = await axiosClient.get("/category/all");
       const list = res?.data?.categories || [];
 
       setCategoriesList(list);
@@ -167,10 +162,9 @@ const BookManagementAdmin = () => {
     if (!ok) return;
 
     try {
-      await axios.patch(
-        `${apiBaseUrl}/api/v1/book/${book._id}/soft-delete`,
-        {},
-        { withCredentials: true }
+      await axiosClient.patch(
+        `/book/${book._id}/soft-delete`,
+        {}
       );
       dispatch(fetchAllBooks(queryParams));
       alert("Đã xóa sách thành công.");
@@ -186,10 +180,9 @@ const BookManagementAdmin = () => {
     if (!ok) return;
 
     try {
-      await axios.patch(
-        `${apiBaseUrl}/api/v1/book/${book._id}/restore`,
-        {},
-        { withCredentials: true }
+      await axiosClient.patch(
+        `/book/${book._id}/restore`,
+        {}
       );
       dispatch(fetchAllBooks(queryParams));
       alert("Khôi phục sách thành công.");
@@ -387,11 +380,10 @@ const BookManagementAdmin = () => {
                       setDeletedFilter("active");
                       setPage(1);
                     }}
-                    className={`px-3 py-1 rounded-md border font-semibold transition ${
-                      deletedFilter === "active"
+                    className={`px-3 py-1 rounded-md border font-semibold transition ${deletedFilter === "active"
                         ? "border-[#C41526] text-[#C41526] bg-[#FDE8EA]"
                         : "border-gray-200 text-gray-600 hover:border-[#C41526] hover:text-[#C41526]"
-                    }`}
+                      }`}
                   >
                     Đang dùng
                   </button>
@@ -402,11 +394,10 @@ const BookManagementAdmin = () => {
                       setDeletedFilter("deleted");
                       setPage(1);
                     }}
-                    className={`px-3 py-1 rounded-md border font-semibold transition ${
-                      deletedFilter === "deleted"
+                    className={`px-3 py-1 rounded-md border font-semibold transition ${deletedFilter === "deleted"
                         ? "border-[#C41526] text-[#C41526] bg-[#FDE8EA]"
                         : "border-gray-200 text-gray-600 hover:border-[#C41526] hover:text-[#C41526]"
-                    }`}
+                      }`}
                     title="Xem danh sách sách đã xóa"
                   >
                     Đã xóa
@@ -479,9 +470,8 @@ const BookManagementAdmin = () => {
                     return (
                       <tr
                         key={book._id}
-                        className={`border-t border-gray-100 ${
-                          (index + 1) % 2 === 0 ? "bg-gray-50" : "bg-white"
-                        } hover:bg-[#FFF5F6] transition`}
+                        className={`border-t border-gray-100 ${(index + 1) % 2 === 0 ? "bg-gray-50" : "bg-white"
+                          } hover:bg-[#FFF5F6] transition`}
                       >
                         <td className="px-4 py-3">
                           {(page - 1) * limit + index + 1}
