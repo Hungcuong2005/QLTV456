@@ -219,25 +219,13 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            import {FaQuoteLeft} from "react-icons/fa";
-
-            // ... existing imports
-
             {/* Quote */}
-            <div className="hidden xl:flex relative bg-gradient-to-br from-white to-[#FDE8EA] p-8 text-lg sm:text-xl xl:text-3xl 2xl:text-4xl min-h-52 font-semibold flex-[3] justify-center items-center rounded-2xl border border-[#FDE8EA] text-center shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300">
-
-              {/* Decorative Icon Background */}
-              <FaQuoteLeft className="absolute top-4 left-4 text-6xl text-[#C41526]/10 transform -translate-y-2 -translate-x-2" />
-              <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-[#C41526]/5 rounded-full blur-2xl"></div>
-
-              <div className="relative z-10 max-w-[90%]">
-                <h4 className="text-[#C41526] italic leading-relaxed drop-shadow-sm font-serif">
-                  "{quote}"
-                </h4>
-              </div>
-
-              <p className="text-gray-500/80 text-sm sm:text-base font-normal absolute right-6 bottom-4 italic">
-                — PHC Library System
+            <div className="hidden xl:flex bg-white p-7 text-lg sm:text-xl xl:text-3xl 2xl:text-4xl min-h-52 font-semibold relative flex-[3] justify-center items-center rounded-2xl border border-[#FDE8EA] text-center">
+              <h4 className="overflow-y-hidden text-[#C41526] italic px-4">
+                "{quote}"
+              </h4>
+              <p className="text-gray-700 text-sm sm:text-lg absolute right-[35px] sm:right-[78px] bottom-[10px]">
+                PHC - 20235286
               </p>
             </div>
           </div>
