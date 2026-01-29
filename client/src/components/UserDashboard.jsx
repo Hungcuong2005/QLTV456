@@ -18,7 +18,7 @@ import {
   PointElement,
   ArcElement,
 } from "chart.js";
-import logo from "../assets/logo4.png";
+import logo from "../assets/logo2.png";
 
 ChartJS.register(
   CategoryScale,
@@ -101,7 +101,7 @@ const UserDashboard = ({ setSelectedComponent }) => {
                 className="w-auto xl:flex-1 rounded-lg"
               />
 
-              <span className="w-[2px] bg-[#C41526] h-full hidden xl:block"></span>
+              <span className="w-[2px] bg-[#C41526] h-full"></span>
 
               <div className="flex items-center gap-3">
                 <div className="flex flex-col gap-3">
