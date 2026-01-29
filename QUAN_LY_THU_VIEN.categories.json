@@ -1,0 +1,70 @@
+[{
+  "_id": {
+    "$oid": "697b9ccdf6bb6a22874833d2"
+  },
+  "name": "Tiểu thuyết",
+  "description": "Các tác phẩm văn học hư cấu",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-01-29T17:45:49.792Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-29T17:45:49.792Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "697b9ccdf6bb6a22874833d3"
+  },
+  "name": "Khoa học - Kỹ thuật",
+  "description": "Sách về công nghệ, lập trình, khoa học",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-01-29T17:45:49.793Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-29T17:45:49.793Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "697b9ccdf6bb6a22874833d4"
+  },
+  "name": "Kinh tế - Tài chính",
+  "description": "Sách về quản trị kinh doanh, đầu tư",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-01-29T17:45:49.793Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-29T17:45:49.793Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "697b9ccdf6bb6a22874833d5"
+  },
+  "name": "Tâm lý - Kỹ năng sống",
+  "description": "Phát triển bản thân",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-01-29T17:45:49.793Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-29T17:45:49.793Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "697b9ccdf6bb6a22874833d6"
+  },
+  "name": "Thiếu nhi",
+  "description": "Truyện tranh, sách giáo dục cho trẻ em",
+  "__v": 0,
+  "createdAt": {
+    "$date": "2026-01-29T17:45:49.793Z"
+  },
+  "updatedAt": {
+    "$date": "2026-01-29T17:45:49.793Z"
+  }
+}]
