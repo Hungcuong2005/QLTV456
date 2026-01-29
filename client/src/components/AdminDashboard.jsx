@@ -19,6 +19,7 @@ import logo from "../assets/logo2.png";
 import { useSelector } from "react-redux";
 import Header from "../layout/Header";
 
+// Đăng ký các thành phần cho ChartJS
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -31,7 +32,15 @@ ChartJS.register(
   ArcElement
 );
 
+/**
+ * Component AdminDashboard (Trang chủ Admin)
+ * - Hiển thị tổng quan hệ thống: Số User, Số Sách, Số Admin.
+ * - Biểu đồ thống kê sách đang mượn/đã trả.
+ * - Thông tin Admin đang đăng nhập.
+ * - Random Quote.
+ */
 const AdminDashboard = () => {
+  // Lấy dữ liệu từ Redux Store
   const { user } = useSelector((state) => state.auth);
   const { users } = useSelector((state) => state.user);
   const { books, totalBooks: totalBooksFromStore } = useSelector((state) => state.book);
@@ -47,6 +56,7 @@ const AdminDashboard = () => {
   const [totalReturnedBooks, setTotalReturnedBooks] = useState(0);
   const [quote, setQuote] = useState("");
 
+  // Danh sách các câu trích dẫn
   const QUOTES = [
     "Sách là ngọn đèn sáng bất diệt của trí tuệ con người.",
     "Đọc sách không những để mở mang trí tuệ mà còn để nuôi dưỡng tâm hồn.",
@@ -65,6 +75,7 @@ const AdminDashboard = () => {
     setQuote(randomQuote);
   }, []);
 
+  // Effect: Tính toán các số liệu thống kê realtime khi dữ liệu thay đổi
   useEffect(() => {
     let numberOfUsers = users.filter((user) => user.role === "User");
     let numberOfAdmins = users.filter((user) => user.role === "Admin");
@@ -84,13 +95,12 @@ const AdminDashboard = () => {
     setTotalReturnedBooks(numberOfTotalReturnedBooks.length);
   }, [users, allBorrowedBooks, books, totalBooksFromStore]);
 
-  // Màu chủ đạo: #C41526 (đỏ)
+  // Dữ liệu cho biểu đồ Pie
   const data = {
     labels: ["Sách đang mượn", "Sách đã trả"],
     datasets: [
       {
         data: [totalBorrowedBooks, totalReturnedBooks],
-        // 2 tông đỏ để phân biệt
         backgroundColor: ["#C41526", "#7A0E18"],
         hoverOffset: 4,
       },
@@ -103,7 +113,7 @@ const AdminDashboard = () => {
         <Header />
 
         <div className="flex flex-col-reverse xl:flex-row">
-          {/* BÊN TRÁI */}
+          {/* BÊN TRÁI: BIỂU ĐỒ & LOGO */}
           <div className="flex-[2] flex-col gap-7 lg:flex-row flex lg:items-center xl:flex-col justify-between xl:gap-20 py-5">
             <div className="xl:flex-[4] flex items-end w-full content-center">
               <Pie
@@ -137,11 +147,12 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* BÊN PHẢI */}
+          {/* BÊN PHẢI: THỐNG KÊ CHI TIẾT */}
           <div className="flex flex-[4] flex-col gap-7 lg:gap-16 lg:px-7 lg:py-5 justify-between xl:min-h-[85.5vh]">
             <div className="flex flex-col-reverse lg:flex-row gap-7 flex-[4]">
               <div className="flex flex-col gap-7 flex-1">
-                {/* Tổng người dùng */}
+
+                {/* Thống kê Tổng người dùng */}
                 <div className="flex items-center gap-3 bg-white p-5 max-h-[120px] overflow-y-hidden rounded-lg transition hover:shadow-inner duration-300 w-full lg:max-w-[360px] border-l-4 border-[#C41526]">
                   <span className="bg-[#FDE8EA] h-20 min-w-20 flex justify-center items-center rounded-lg">
                     <img src={usersIcon} alt="users-icon" className="w-8 h-8" />
@@ -159,7 +170,7 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                {/* Tổng sách */}
+                {/* Thống kê Tổng sách */}
                 <div className="flex items-center gap-3 bg-white p-5 max-h-[120px] overflow-y-hidden rounded-lg transition hover:shadow-inner duration-300 w-full lg:max-w-[360px] border-l-4 border-[#C41526]">
                   <span className="bg-[#FDE8EA] h-20 min-w-20 flex justify-center items-center rounded-lg">
                     <img src={bookIcon} alt="book-icon" className="w-8 h-8" />
@@ -177,7 +188,7 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                {/* Tổng admin */}
+                {/* Thống kê Tổng Admin */}
                 <div className="flex items-center gap-3 bg-white p-5 max-h-[120px] overflow-y-hidden rounded-lg transition hover:shadow-inner duration-300 w-full lg:max-w-[360px] border-l-4 border-[#C41526]">
                   <span className="bg-[#FDE8EA] h-20 min-w-20 flex justify-center items-center rounded-lg">
                     <img src={adminIcon} alt="admin-icon" className="w-8 h-8" />
@@ -196,7 +207,7 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              {/* Thông tin admin */}
+              {/* Thông tin Admin đang đăng nhập */}
               <div className="flex flex-col lg:flex-row flex-1">
                 <div className="flex flex-col lg:flex-row flex-1 items-center justify-center">
                   <div className="bg-white p-5 rounded-lg shadow-lg h-full flex flex-col justify-center items-center gap-4 border-t-4 border-[#C41526]">
@@ -219,7 +230,7 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            {/* Quote */}
+            {/* QUOTE SECTION */}
             <div className="hidden xl:flex bg-white p-7 text-lg sm:text-xl xl:text-3xl 2xl:text-4xl min-h-52 font-semibold relative flex-[3] justify-center items-center rounded-2xl border border-[#FDE8EA] text-center">
               <h4 className="overflow-y-hidden text-[#C41526] italic px-4">
                 "{quote}"

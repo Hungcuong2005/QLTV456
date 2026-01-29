@@ -2,6 +2,14 @@ import React, { useState } from "react";
 import axiosClient from "../api/axiosClient";
 import { toast } from "react-toastify";
 
+/**
+ * AddCategoryPopup - Popup thêm thể loại sách mới
+ * 
+ * Chức năng:
+ * - Nhập tên và mô tả thể loại.
+ * - Gọi API thêm mới.
+ * - Refresh lại danh sách category ở component cha.
+ */
 const AddCategoryPopup = ({ onAdded, onClose }) => {
 
     const [loading, setLoading] = useState(false);
@@ -11,6 +19,7 @@ const AddCategoryPopup = ({ onAdded, onClose }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Validate tên thể loại
         const trimmedName = name.trim();
         if (!trimmedName) {
             toast.error("Vui lòng nhập tên thể loại!");
@@ -20,6 +29,7 @@ const AddCategoryPopup = ({ onAdded, onClose }) => {
         try {
             setLoading(true);
 
+            // Gọi API thêm category
             const res = await axiosClient.post("/category/admin/add", {
                 name: trimmedName,
                 description,
@@ -27,6 +37,7 @@ const AddCategoryPopup = ({ onAdded, onClose }) => {
 
             const data = res.data;
 
+            // Tạo object category tạm thời để update UI ngay lập tức
             const createdCategory =
                 data?.category ||
                 ({
@@ -35,20 +46,20 @@ const AddCategoryPopup = ({ onAdded, onClose }) => {
                     description,
                 });
 
-            // ✅ báo list cập nhật trước
+            // Callback báo cho component cha biết đã thêm thành công
             if (typeof onAdded === "function") {
                 await onAdded(createdCategory);
             }
 
             toast.success(data?.message || "Thêm thể loại thành công!");
 
-            // ✅ báo cho BookManagement / nơi khác refresh categories (nếu có lắng nghe)
+            // Phát sự kiện toàn cục để các component khác (nếu có) refresh lại list
             window.dispatchEvent(new Event("category:refresh"));
 
-            // ✅ đóng popup ngay
+            // Đóng popup
             if (typeof onClose === "function") onClose();
 
-            // reset (không bắt buộc, nhưng sạch)
+            // Reset form
             setName("");
             setDescription("");
         } catch (err) {
@@ -76,6 +87,7 @@ const AddCategoryPopup = ({ onAdded, onClose }) => {
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
+                        {/* Nhập Tên Category */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-1">
                                 Tên thể loại <span className="text-[#C41526]">*</span>
@@ -90,6 +102,7 @@ const AddCategoryPopup = ({ onAdded, onClose }) => {
                             />
                         </div>
 
+                        {/* Nhập Mô tả (Optional) */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-1">
                                 Mô tả
@@ -104,6 +117,7 @@ const AddCategoryPopup = ({ onAdded, onClose }) => {
                             />
                         </div>
 
+                        {/* Button Submit */}
                         <button
                             type="submit"
                             disabled={loading}

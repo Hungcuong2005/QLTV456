@@ -3,16 +3,32 @@ import { useDispatch } from "react-redux";
 import { toggleReturnBookPopup } from "../store/slices/popUpSlice";
 import PaymentMethodPopup from "./PaymentMethodPopup";
 
+/**
+ * ReturnBookPopup - Popup Xác nhận trả sách
+ * 
+ * Luồng hoạt động:
+ * 1. Hiển thị thông tin cơ bản: Email người mượn, Số tiền phạt/phí cần trả.
+ * 2. Khi user bấm "Trả sách" -> Mở tiếp Popup chọn phương thức thanh toán (PaymentMethodPopup).
+ * 
+ * Props:
+ * - borrowId: ID của lượt mượn (Borrow._id)
+ * - email: Email người mượn
+ * - amount: Tổng số tiền cần thanh toán (Giá sách + Phạt)
+ */
 const ReturnBookPopup = ({ borrowId, email, amount = 0 }) => {
   const dispatch = useDispatch();
+
+  // State để điều khiển việc hiển thị Popup chọn phương thức thanh toán
   const [showPayment, setShowPayment] = useState(false);
 
+  // Format số tiền sang định dạng tiền tệ Việt Nam (VD: 50.000₫)
   const moneyVND = useMemo(() => {
     if (typeof amount === "number") return `${amount.toLocaleString("vi-VN")}₫`;
     if (amount === null || amount === undefined) return "—";
     return `${amount}₫`;
   }, [amount]);
 
+  // Xử lý khi bấm nút "Trả sách" -> Mở PaymentMethodPopup
   const handleOpenPayment = (e) => {
     e.preventDefault();
     setShowPayment(true);
@@ -33,6 +49,7 @@ const ReturnBookPopup = ({ borrowId, email, amount = 0 }) => {
             </p>
 
             <form onSubmit={handleOpenPayment}>
+              {/* EMAIL NGƯỜI MƯỢN (Read-only) */}
               <div className="mb-4">
                 <label className="block text-gray-900 font-medium">
                   Email người mượn
@@ -47,6 +64,7 @@ const ReturnBookPopup = ({ borrowId, email, amount = 0 }) => {
                 />
               </div>
 
+              {/* ACTION BUTTONS */}
               <div className="flex justify-end space-x-4">
                 <button
                   type="button"
@@ -68,6 +86,7 @@ const ReturnBookPopup = ({ borrowId, email, amount = 0 }) => {
         </div>
       </div>
 
+      {/* POPUP CHỌN PHƯƠNG THỨC THANH TOÁN (Cash / Online) */}
       {showPayment && (
         <PaymentMethodPopup
           amount={amount}
@@ -75,7 +94,7 @@ const ReturnBookPopup = ({ borrowId, email, amount = 0 }) => {
           email={email}
           onClose={() => {
             setShowPayment(false);
-            dispatch(toggleReturnBookPopup());
+            dispatch(toggleReturnBookPopup()); // Đóng cả popup cha khi xong
           }}
         />
       )}

@@ -1,8 +1,21 @@
 import React, { useMemo, useState } from "react";
 import axiosClient from "../api/axiosClient";
 import { useDispatch } from "react-redux";
-import { fetchAllBorrowedBooks } from "../store/slices/borrowSlice"; // giữ nguyên theo project bạn
+import { fetchAllBorrowedBooks } from "../store/slices/borrowSlice";
 
+/**
+ * PaymentMethodPopup - Popup Chọn phương thức thanh toán
+ * 
+ * Các phương thức:
+ * 1. Tiền mặt (Cash): Nhân viên xác nhận đã thu tiền tại quầy.
+ * 2. VNPAY: Chuyển hướng sang cổng thanh toán VNPAY.
+ * 3. ZaloPay: (Chưa tích hợp - Disabled).
+ * 
+ * Props:
+ * - amount: Số tiền cần thanh toán.
+ * - borrowId: ID lượt mượn sách.
+ * - email: Email người mượn.
+ */
 const PaymentMethodPopup = ({
   amount = 0,
   defaultMethod = "cash",
@@ -16,16 +29,19 @@ const PaymentMethodPopup = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Format tiền tệ VNĐ
   const moneyVND = useMemo(() => {
     if (typeof amount === "number") return `${amount.toLocaleString("vi-VN")}₫`;
     if (amount === null || amount === undefined) return "—";
     return `${amount}₫`;
   }, [amount]);
 
+  // Xử lý khi bấm nút "Xác nhận thanh toán"
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
+    // Validate dữ liệu đầu vào
     if (!borrowId) return setError("Thiếu borrowId (ID lượt mượn).");
     if (!email) return setError("Thiếu email người dùng.");
 
@@ -37,29 +53,35 @@ const PaymentMethodPopup = ({
     try {
       setLoading(true);
 
-      // ✅ PREPARE theo borrowId
+      // --- BƯỚC 1: Gọi API chuẩn bị thanh toán (Prepare) ---
+      // API này sẽ tính toán lại số tiền (bao gồm phạt quá hạn mới nhất)
+      // và tạo giao dịch pending.
       const prepareUrl = `/borrow/return/prepare/${borrowId}`;
       const { data } = await axiosClient.post(
         prepareUrl,
         { email, method }
       );
 
+      // --- BƯỚC 2A: Xử lý VNPAY ---
       if (method === "vnpay") {
         if (!data?.paymentUrl) {
           setError("Không nhận được paymentUrl từ server.");
           return;
         }
+        // Chuyển hướng trình duyệt sang trang thanh toán VNPAY
         window.location.href = data.paymentUrl;
         return;
       }
 
+      // --- BƯỚC 2B: Xử lý Tiền mặt (Cash) ---
       if (method === "cash") {
         const realAmount = data?.amount ?? amount;
 
-        // ✅ CONFIRM CASH theo borrowId
+        // Gọi API xác nhận đã thu tiền mặt
         const confirmUrl = `/borrow/return/cash/confirm/${borrowId}`;
         await axiosClient.post(confirmUrl, { email });
 
+        // Refresh lại danh sách và đóng popup
         onClose?.();
         await dispatch(fetchAllBorrowedBooks());
 
@@ -94,6 +116,7 @@ const PaymentMethodPopup = ({
             <span className="font-semibold text-gray-900">{moneyVND}</span>
           </p>
 
+          {/* Hiển thị lỗi nếu có */}
           {error && (
             <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
               {error}
@@ -102,6 +125,8 @@ const PaymentMethodPopup = ({
 
           <form onSubmit={handleSubmit}>
             <div className="space-y-3 mb-6">
+
+              {/* Option 1: Tiền mặt */}
               <label className="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-[#C41526] hover:bg-[#FDE8EA] transition cursor-pointer">
                 <input
                   type="radio"
@@ -120,6 +145,7 @@ const PaymentMethodPopup = ({
                 </div>
               </label>
 
+              {/* Option 2: ZaloPay */}
               <label className="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-[#C41526] hover:bg-[#FDE8EA] transition cursor-pointer">
                 <input
                   type="radio"
@@ -138,6 +164,7 @@ const PaymentMethodPopup = ({
                 </div>
               </label>
 
+              {/* Option 3: VNPAY */}
               <label className="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-[#C41526] hover:bg-[#FDE8EA] transition cursor-pointer">
                 <input
                   type="radio"
@@ -157,6 +184,7 @@ const PaymentMethodPopup = ({
               </label>
             </div>
 
+            {/* ACTION BUTTONS */}
             <div className="flex justify-end space-x-4">
               <button
                 type="button"

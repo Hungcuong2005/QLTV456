@@ -26,6 +26,20 @@ const MAX_CATEGORIES = 3;
 const PLACEHOLDER_IMAGE =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='120' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23FDE8EA'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='14' fill='%23C41526' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E";
 
+/**
+ * BookManagementAdmin - Trang Quản lý sách (Dành cho Admin)
+ * 
+ * Chức năng chính:
+ * 1. Hiển thị danh sách sách (Phân trang, Lọc, Tìm kiếm).
+ * 2. Các bộ lọc: Từ khóa, Thể loại, Trạng thái (Còn/Hết), Giá.
+ * 3. Thao tác Admin:
+ *    - Thêm sách mới (+ bản sao).
+ *    - Quản lý danh mục (CategoryListPopup).
+ *    - Ghi nhận mượn sách (RecordBookPopup).
+ *    - Cập nhật ảnh bìa (UploadBookCoverPopup).
+ *    - Xem chi tiết sách (ReadBookPopup).
+ *    - Xóa mềm / Khôi phục sách.
+ */
 const BookManagementAdmin = () => {
   const dispatch = useDispatch();
 
@@ -35,14 +49,15 @@ const BookManagementAdmin = () => {
   );
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
+  // States quản lý việc hiển thị các Popup
   const {
     addBookPopup,
     categoryListPopup,
-    addCategoryPopup,
     readBookPopup,
     recordBookPopup,
   } = useSelector((state) => state.popup);
 
+  // States từ borrowSlice (để refresh data khi có giao dịch mượn/trả)
   const {
     loading: borrowSliceLoading,
     error: borrowSliceError,
@@ -50,7 +65,11 @@ const BookManagementAdmin = () => {
   } = useSelector((state) => state.borrow);
 
   // ===== LOCAL STATES =====
+
+  // Popup Upload Cover
   const [coverPopupOpen, setCoverPopupOpen] = useState(false);
+  const [coverBook, setCoverBook] = useState(null);
+
   const openCoverPopup = (book) => {
     setCoverBook(book);
     setCoverPopupOpen(true);
@@ -61,9 +80,11 @@ const BookManagementAdmin = () => {
     setCoverBook(null);
   };
 
-  const [coverBook, setCoverBook] = useState(null);
+  // State cho các popup khác
   const [readBook, setReadBook] = useState({});
   const [borrowBookId, setBorrowBookId] = useState("");
+
+  // Filter States
   const [searchedKeyword, setSearchedKeyword] = useState("");
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
   const [minPrice, setMinPrice] = useState("");
@@ -73,10 +94,15 @@ const BookManagementAdmin = () => {
   const [limit, setLimit] = useState(8);
 
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
-  const [deletedFilter, setDeletedFilter] = useState("active");
+  const [deletedFilter, setDeletedFilter] = useState("active"); // "active" hoặc "deleted"
+
+  // Danh sách danh mục để hiển thị trong dropdown filter
   const [categoriesList, setCategoriesList] = useState([]);
   const [categoryIdToName, setCategoryIdToName] = useState({});
 
+  /**
+   * Tải danh sách Categories để map ID -> Name và hiển thị filter
+   */
   const fetchCategoryMap = async () => {
     try {
       const res = await axiosClient.get("/category/all");
@@ -99,24 +125,29 @@ const BookManagementAdmin = () => {
     fetchCategoryMap();
   }, []);
 
+  // Lắng nghe sự kiện refresh category (khi thêm category mới ở popup)
   useEffect(() => {
     const handler = () => fetchCategoryMap();
     window.addEventListener("category:refresh", handler);
     return () => window.removeEventListener("category:refresh", handler);
   }, []);
 
-  // ===== FUNCTIONS =====
+  // ===== HANDLER FUNCTIONS =====
+
+  // Mở popup xem chi tiết sách
   const openReadPopup = (id) => {
     const book = (books || []).find((b) => b._id === id);
     setReadBook(book);
     dispatch(toggleReadBookPopup());
   };
 
+  // Mở popup ghi nhận mượn sách
   const openRecordBookPopup = (bookId) => {
     setBorrowBookId(bookId);
     dispatch(toggleRecordBookPopup());
   };
 
+  // Helper chuyển đổi ID category sang tên hiển thị
   const getCategoryNames = (book) => {
     const raw =
       book?.categories ||
@@ -139,12 +170,18 @@ const BookManagementAdmin = () => {
     return Array.from(new Set(names)).slice(0, MAX_CATEGORIES);
   };
 
+  // Helper format tiền tệ
   const moneyVND = (value) => {
     if (typeof value === "number") return `${value.toLocaleString("vi-VN")}₫`;
     if (value === null || value === undefined) return "—";
     return `${value}₫`;
   };
 
+  /**
+   * Xử lý Xóa mềm (Soft Delete)
+   * Điều kiện: Số lượng tồn kho (Quantity) phải bằng Tổng số bản sao (TotalCopies)
+   * Tức là chưa có ai mượn cuốn nào.
+   */
   const handleSoftDelete = async (book) => {
     if (!book?._id) return;
 
@@ -173,6 +210,9 @@ const BookManagementAdmin = () => {
     }
   };
 
+  /**
+   * Xử lý Khôi phục sách đã xóa (Restore)
+   */
   const handleRestore = async (book) => {
     if (!book?._id) return;
 
@@ -191,7 +231,9 @@ const BookManagementAdmin = () => {
     }
   };
 
-  // ===== EFFECT =====
+  // ===== DATA FETCHING & SIDE EFFECTS =====
+
+  // Gom nhóm các params filter để gửi lên API
   const queryParams = useMemo(() => {
     const params = { page, limit, sort: sortOption };
     const keyword = searchedKeyword.trim();
@@ -202,7 +244,7 @@ const BookManagementAdmin = () => {
 
     if (selectedCategoryId) params.categoryId = selectedCategoryId;
 
-    params.deleted = deletedFilter;
+    params.deleted = deletedFilter; // Lọc theo 'active' hoặc 'deleted'
 
     return params;
   }, [
@@ -217,6 +259,7 @@ const BookManagementAdmin = () => {
     deletedFilter,
   ]);
 
+  // Refresh danh sách khi có thay đổi (Thêm/Xóa/Mượn thành công)
   useEffect(() => {
     if (message || borrowSliceMessage) {
       dispatch(fetchAllBooks(queryParams));
@@ -238,10 +281,12 @@ const BookManagementAdmin = () => {
     queryParams,
   ]);
 
+  // Gọi API mỗi khi filter thay đổi
   useEffect(() => {
     dispatch(fetchAllBooks(queryParams));
   }, [dispatch, queryParams]);
 
+  // Reset trang về cuối nếu xóa hết item ở trang hiện tại
   useEffect(() => {
     if (page > totalPages && totalPages > 0) setPage(totalPages);
   }, [page, totalPages]);
@@ -253,8 +298,10 @@ const BookManagementAdmin = () => {
       <main className="relative flex-1 p-6 pt-28">
         <Header />
 
+        {/* HEADER & FILTER SECTION */}
         <div className="bg-white rounded-xl shadow-md border border-[#FDE8EA] p-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            {/* Title & Subtitle */}
             <div>
               <h2 className="text-xl md:text-2xl font-semibold text-[#C41526]">
                 {user?.role === "Admin" ? "Quản lý sách" : "Danh sách sách"}
@@ -266,12 +313,15 @@ const BookManagementAdmin = () => {
               </p>
             </div>
 
+            {/* Filter Controls */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <div className="flex flex-1 flex-col gap-3 rounded-xl border border-[#FDE8EA] bg-[#FFFDFD] p-3 sm:p-4">
                 <div className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
                   Tìm kiếm & lọc
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+
+                  {/* Search Input */}
                   <div className="relative w-full sm:w-72">
                     <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
@@ -286,6 +336,7 @@ const BookManagementAdmin = () => {
                     />
                   </div>
 
+                  {/* Category Filter */}
                   <select
                     className="w-full sm:w-auto px-3 py-2 border border-gray-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-0 focus:border-gray-300"
                     value={selectedCategoryId}
@@ -303,6 +354,7 @@ const BookManagementAdmin = () => {
                     ))}
                   </select>
 
+                  {/* Availability Filter */}
                   <select
                     className="w-full sm:w-auto px-3 py-2 border border-gray-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-0 focus:border-gray-300"
                     value={availabilityFilter}
@@ -316,6 +368,7 @@ const BookManagementAdmin = () => {
                     <option value="false">Hết sách</option>
                   </select>
 
+                  {/* Sorting */}
                   <select
                     className="w-full sm:w-auto px-3 py-2 border border-gray-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-0 focus:border-gray-300"
                     value={sortOption}
@@ -333,6 +386,7 @@ const BookManagementAdmin = () => {
                 </div>
               </div>
 
+              {/* Action Buttons (Admin Only) */}
               {isAuthenticated && user?.role === "Admin" && (
                 <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-3">
                   <button
@@ -359,10 +413,9 @@ const BookManagementAdmin = () => {
           </div>
         </div>
 
-        {/* ---- PHẦN CÒN LẠI GIỮ NGUYÊN Y HỆT ---- */}
-        {/* (Mình giữ nguyên toàn bộ JSX/logic phía dưới giống file bạn gửi) */}
-
+        {/* DATA TABLE SECTION */}
         <div className="mt-6 bg-white rounded-xl shadow-lg border border-[#FDE8EA] overflow-hidden">
+          {/* Table Header / Summary */}
           <div className="px-5 py-3 border-b border-[#FDE8EA] flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
@@ -372,6 +425,7 @@ const BookManagementAdmin = () => {
                 </span>
               </div>
 
+              {/* Toggle Deleted / Active Tabs */}
               {user?.role === "Admin" && (
                 <div className="flex items-center gap-2">
                   <button
@@ -381,8 +435,8 @@ const BookManagementAdmin = () => {
                       setPage(1);
                     }}
                     className={`px-3 py-1 rounded-md border font-semibold transition ${deletedFilter === "active"
-                        ? "border-[#C41526] text-[#C41526] bg-[#FDE8EA]"
-                        : "border-gray-200 text-gray-600 hover:border-[#C41526] hover:text-[#C41526]"
+                      ? "border-[#C41526] text-[#C41526] bg-[#FDE8EA]"
+                      : "border-gray-200 text-gray-600 hover:border-[#C41526] hover:text-[#C41526]"
                       }`}
                   >
                     Đang dùng
@@ -395,8 +449,8 @@ const BookManagementAdmin = () => {
                       setPage(1);
                     }}
                     className={`px-3 py-1 rounded-md border font-semibold transition ${deletedFilter === "deleted"
-                        ? "border-[#C41526] text-[#C41526] bg-[#FDE8EA]"
-                        : "border-gray-200 text-gray-600 hover:border-[#C41526] hover:text-[#C41526]"
+                      ? "border-[#C41526] text-[#C41526] bg-[#FDE8EA]"
+                      : "border-gray-200 text-gray-600 hover:border-[#C41526] hover:text-[#C41526]"
                       }`}
                     title="Xem danh sách sách đã xóa"
                   >
@@ -411,6 +465,7 @@ const BookManagementAdmin = () => {
             ) : null}
           </div>
 
+          {/* Table Content */}
           {searchedBooks.length > 0 ? (
             <div className="overflow-auto">
               <table className="min-w-full border-collapse">
@@ -616,6 +671,7 @@ const BookManagementAdmin = () => {
               </table>
             </div>
           ) : (
+            // No Data Display
             <div className="p-6">
               <h3 className="text-lg font-semibold text-[#C41526]">
                 Không tìm thấy sách!
@@ -626,7 +682,10 @@ const BookManagementAdmin = () => {
             </div>
           )}
 
+          {/* Pagination & Footer */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-5 py-4 border-t border-[#FDE8EA] bg-[#FFFDFD]">
+
+            {/* Filter by Price Range & Info */}
             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
               <span className="font-semibold text-gray-700">
                 Hiển thị {searchedBooks.length} / {totalBooks} sách
@@ -675,6 +734,7 @@ const BookManagementAdmin = () => {
               </button>
             </div>
 
+            {/* Pagination Controls */}
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <span>Hiển thị</span>
@@ -719,6 +779,7 @@ const BookManagementAdmin = () => {
         </div>
       </main>
 
+      {/* ===== POPUPS ===== */}
       {addBookPopup && <AddBookPopup />}
       {categoryListPopup && <CategoryListPopup />}
       {readBookPopup && <ReadBookPopup book={readBook} />}

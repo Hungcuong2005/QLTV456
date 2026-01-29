@@ -3,19 +3,26 @@ import axiosClient from "../../api/axiosClient";
 import { toggleAddBookPopup } from "./popUpSlice";
 import { toast } from "react-toastify";
 
+/**
+ * bookSlice - Quản lý trạng thái Sách
+ * Bao gồm:
+ * - Lấy danh sách sách (Phân trang, Lọc)
+ * - Thêm sách mới
+ */
 const bookSlice = createSlice({
   name: "book",
   initialState: {
-    loading: false,
-    error: null,
-    message: null,
-    books: [],
-    totalBooks: 0,
-    page: 1,
-    limit: 0,
-    totalPages: 1,
+    loading: false,     // Đang loading
+    error: null,        // Lỗi
+    message: null,      // Thông báo thành công
+    books: [],          // Danh sách sách
+    totalBooks: 0,      // Tổng số sách (cho pagination)
+    page: 1,            // Trang hiện tại
+    limit: 0,           // Số lượng item/trang
+    totalPages: 1,      // Tổng số trang
   },
   reducers: {
+    // --- LẤY DANH SÁCH SÁCH ---
     fetchBooksRequest(state) {
       state.loading = true;
       state.error = null;
@@ -36,6 +43,7 @@ const bookSlice = createSlice({
       state.message = null;
     },
 
+    // --- THÊM SÁCH ---
     addBookRequest(state) {
       state.loading = true;
       state.error = null;
@@ -48,6 +56,7 @@ const bookSlice = createSlice({
       const newBook = action.payload?.book;
       if (!newBook) return;
 
+      // Nếu sách đã tồn tại (chỉ là update thêm số lượng) -> Update trong list
       const existingIndex = state.books.findIndex((book) => book._id === newBook._id);
       if (existingIndex >= 0) {
         state.books[existingIndex] = {
@@ -57,6 +66,7 @@ const bookSlice = createSlice({
         return;
       }
 
+      // Nếu sách mới hoàn toàn -> Thêm vào đầu danh sách
       state.books = [newBook, ...state.books];
       state.totalBooks = (state.totalBooks || 0) + 1;
       if (state.limit) {
@@ -68,6 +78,7 @@ const bookSlice = createSlice({
       state.error = action.payload;
     },
 
+    // --- RESET SLICE ---
     resetBookSlice(state) {
       state.error = null;
       state.message = null;
@@ -76,6 +87,11 @@ const bookSlice = createSlice({
   },
 });
 
+// ==========================================
+// THUNK ACTIONS
+// ==========================================
+
+// Lấy danh sách sách có filter & pagination
 export const fetchAllBooks = (params = {}) => async (dispatch) => {
   dispatch(bookSlice.actions.fetchBooksRequest());
   try {
@@ -101,6 +117,7 @@ export const fetchAllBooks = (params = {}) => async (dispatch) => {
   }
 };
 
+// Thêm sách mới
 export const addBook = (data) => async (dispatch, getState) => {
   dispatch(bookSlice.actions.addBookRequest());
 
@@ -114,7 +131,8 @@ export const addBook = (data) => async (dispatch, getState) => {
       })
     );
 
-    // ✅ PHÂN BIỆT TOAST: thêm đầu sách vs thêm bản sao
+    // ✅ PHÂN BIỆT TOAST: thêm đầu sách vs thêm bản sao (BookCopy)
+    // Nếu chỉ có ISBN và Quantity mà không có Title/Author thì là thêm Copy
     const isAddCopiesOnly =
       data &&
       typeof data === "object" &&
@@ -129,13 +147,14 @@ export const addBook = (data) => async (dispatch, getState) => {
       ? "ISBN đã tồn tại → đã thêm bản sao (BookCopy) và cập nhật số lượng."
       : "Đã thêm đầu sách và tạo bản sao (BookCopy) thành công.";
 
-    // ✅ CHỐNG TRÙNG TOAST
+    // ✅ CHỐNG TRÙNG TOAST bằng toastId
     const toastKey = isAddCopiesOnly
       ? `add-copies-${data?.isbn || "unknown"}`
       : `add-title-${data?.isbn || "unknown"}`;
 
     toast.success(toastMsg, { toastId: toastKey });
 
+    // Đóng popup thêm sách nếu đang mở
     const { popup } = getState();
     if (popup?.addBookPopup) {
       dispatch(toggleAddBookPopup());
@@ -147,6 +166,7 @@ export const addBook = (data) => async (dispatch, getState) => {
   }
 };
 
+// Reset state
 export const resetBookSlice = () => (dispatch) => {
   dispatch(bookSlice.actions.resetBookSlice());
 };

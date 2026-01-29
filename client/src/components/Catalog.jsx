@@ -12,17 +12,26 @@ import { fetchAllBooks, resetBookSlice } from "../store/slices/bookSlice";
 import ReturnBookPopup from "../popups/ReturnBookPopup";
 import Header from "../layout/Header";
 
-
+/**
+ * Component Catalog (Danh sách mượn trả - Admin)
+ * Hiển thị bảng danh sách các sách đang được mượn bởi tất cả người dùng.
+ * Chức năng:
+ * - Xem danh sách sách đang mượn / quá hạn.
+ * - Mở popup để thực hiện trả sách.
+ */
 const Catalog = () => {
   const dispatch = useDispatch();
 
+  // Lấy state từ Redux
   const { returnBookPopup } = useSelector((state) => state.popup);
   const { loading, error, allBorrowedBooks, message } = useSelector(
     (state) => state.borrow
   );
 
+  // Filter: 'borrowed' (đang mượn) hoặc 'overdue' (quá hạn)
   const [filter, setFilter] = useState("borrowed");
 
+  // Hàm format thời gian hiển thị (Ngày - Tháng - Năm Giờ:Phút:Giây)
   const formatDateAndTime = (timeStamp) => {
     const date = new Date(timeStamp);
 
@@ -40,6 +49,7 @@ const Catalog = () => {
     return `${formattedDate} ${formattedTime}`;
   };
 
+  // Hàm format ngày (Ngày - Tháng - Năm)
   const formatDate = (timeStamp) => {
     const date = new Date(timeStamp);
 
@@ -50,53 +60,57 @@ const Catalog = () => {
 
   const currentDate = new Date();
 
+  // Lọc sách ĐANG MƯỢN (Hạn trả > Hiện tại)
   const borrowedBooks = allBorrowedBooks?.filter((book) => {
     const dueDate = new Date(book.dueDate);
     return dueDate > currentDate;
   });
 
+  // Lọc sách QUÁ HẠN (Hạn trả <= Hiện tại)
   const overdueBooks = allBorrowedBooks?.filter((book) => {
     const dueDate = new Date(book.dueDate);
     return dueDate <= currentDate;
   });
 
+  // Chọn danh sách hiển thị dựa trên tab đang chọn
   const booksToDisplay = filter === "borrowed" ? borrowedBooks : overdueBooks;
 
   /**
    * ================================
-   * 🪟 RETURN BOOK POPUP STATE
+   * 🪟 QUẢN LÝ TRẠNG THÁI POPUP TRẢ SÁCH
    * ================================
    * - email   : email người mượn
-   * - borrowId: id LƯỢT MƯỢN (Borrow._id) ✅ (đúng chuẩn BookCopy)
-   * - amount  : số tiền hiển thị khi thanh toán (price + fine)
+   * - borrowId: id LƯỢT MƯỢN (quan trọng để backend biết trả lượt nào)
+   * - amount  : tổng tiền cần thu (giá sách + phạt)
    */
   const [email, setEmail] = useState("");
-  const [borrowId, setBorrowId] = useState(""); // ✅ đổi từ borrowedBookId(bookId) -> borrowId
+  const [borrowId, setBorrowId] = useState("");
   const [amount, setAmount] = useState(0);
 
   /**
    * ================================
-   * ✅ OPEN RETURN POPUP
+   * ✅ HÀM MỞ POPUP TRẢ SÁCH
    * ================================
-   * Khi user click icon "Trả sách":
-   * - Set borrowId + email
-   * - Tính amount (price + fine)
-   * - Bật popup ReturnBookPopup
+   * Khi user click icon "Trả sách" trên bảng
    */
   const openReturnBookPopup = (borrowDoc) => {
-    // ✅ LẤY ID LƯỢT MƯỢN (Borrow._id) chứ không phải bookId
+    // Lưu ID lượt mượn
     setBorrowId(borrowDoc._id);
 
+    // Lưu email người dùng
     setEmail(borrowDoc?.user?.email || "");
 
     const price = typeof borrowDoc?.price === "number" ? borrowDoc.price : 0;
     const fine = typeof borrowDoc?.fine === "number" ? borrowDoc.fine : 0;
 
+    // Tính tổng tiền hiển thị
     setAmount(price + fine);
 
+    // Bật popup
     dispatch(toggleReturnBookPopup());
   };
 
+  // Effect xử lý thông báo và reload dữ liệu sau khi trả sách thành công
   useEffect(() => {
     if (message) {
       toast.success(message);
@@ -117,6 +131,7 @@ const Catalog = () => {
       <main className="relative flex-1 p-6 pt-28">
         <Header />
 
+        {/* CÁC TAB CHUYỂN ĐỔI (ĐANG MƯỢN / QUÁ HẠN) */}
         <header className="flex flex-col gap-3 sm:flex-row md:items-center">
           <button
             className={`relative rounded sm:rounded-tr-none sm:rounded-br-none sm:rounded-tl-lg sm:rounded-bl-lg
@@ -143,6 +158,7 @@ const Catalog = () => {
           </button>
         </header>
 
+        {/* BẢNG HIỂN THỊ DỮ LIỆU */}
         {booksToDisplay && booksToDisplay.length > 0 ? (
           <div className="mt-6 overflow-auto bg-white rounded-md shadow-lg border-t-4 border-[#C41526]">
             <table className="min-w-full border-collapse">
@@ -233,9 +249,10 @@ const Catalog = () => {
         )}
       </main>
 
+      {/* POPUP TRẢ SÁCH */}
       {returnBookPopup && (
         <ReturnBookPopup
-          borrowId={borrowId} // ✅ đổi sang borrowId
+          borrowId={borrowId}
           email={email}
           amount={amount}
         />

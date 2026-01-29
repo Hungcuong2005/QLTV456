@@ -3,13 +3,21 @@ import axiosClient from "../../api/axiosClient";
 import { toast } from "react-toastify";
 import { toggleAddNewAdminPopup } from "./popUpSlice";
 
+/**
+ * userSlice - Quản lý trạng thái Người dùng
+ * Bao gồm:
+ * - Lấy danh sách người dùng
+ * - Thêm Admin mới
+ * - Xóa / Khôi phục / Khóa người dùng
+ */
 const userSlice = createSlice({
   name: "user",
   initialState: {
-    users: [],
-    loading: false,
+    users: [],       // Danh sách Users
+    loading: false,  // Trạng thái Loading
   },
   reducers: {
+    // --- LẤY DANH SÁCH USER ---
     fetchAllUsersRequest(state) {
       state.loading = true;
     },
@@ -21,6 +29,7 @@ const userSlice = createSlice({
       state.loading = false;
     },
 
+    // --- THÊM ADMIN MỚI ---
     addNewAdminRequest(state) {
       state.loading = true;
     },
@@ -33,11 +42,15 @@ const userSlice = createSlice({
   },
 });
 
+// ==========================================
+// THUNK ACTIONS
+// ==========================================
+
 /**
  * ✅ Fetch users (CHỈ user đã verify)
  * @param {"active"|"deleted"} status
- *  - "active": Chưa xóa
- *  - "deleted": Đã xóa
+ *  - "active": User đang hoạt động
+ *  - "deleted": User đã bị xóa (Soft Delete)
  */
 export const fetchAllUsers = (status = "active") => async (dispatch) => {
   dispatch(userSlice.actions.fetchAllUsersRequest());
@@ -58,8 +71,8 @@ export const fetchAllUsers = (status = "active") => async (dispatch) => {
 
 /**
  * ✅ Add new admin
- * @param {FormData} data
- * @param {"active"|"deleted"} refreshStatus - tab cần refresh sau khi thêm (mặc định "active")
+ * @param {FormData} data - Form data của Admin mới (avatar, name, email...)
+ * @param {"active"|"deleted"} refreshStatus - Tab hiện tại để refresh list sau khi thêm
  */
 export const addNewAdmin =
   (data, refreshStatus = "active") =>
@@ -77,7 +90,7 @@ export const addNewAdmin =
         toast.success(res.data.message);
         dispatch(toggleAddNewAdminPopup());
 
-        // 👉 refresh lại danh sách user theo tab hiện tại
+        // 👉 Refresh lại danh sách user theo tab hiện tại
         dispatch(fetchAllUsers(refreshStatus));
       } catch (err) {
         dispatch(userSlice.actions.addNewAdminFailed());

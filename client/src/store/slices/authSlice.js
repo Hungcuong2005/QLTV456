@@ -1,16 +1,25 @@
 import { createSlice } from "@reduxjs/toolkit";
 import axiosClient from "../../api/axiosClient";
 
+/**
+ * authSlice - Quản lý trạng thái xác thực người dùng
+ * Bao gồm:
+ * - Đăng ký, Đăng nhập, Đăng xuất
+ * - Xác thực OTP
+ * - Quên mật khẩu, Đặt lại mật khẩu, Đổi mật khẩu
+ * - Lấy thông tin người dùng hiện tại (me)
+ */
 const authSlice = createSlice({
   name: "auth",
   initialState: {
-    loading: false,
-    error: null,
-    message: null,
-    user: null,
-    isAuthenticated: false,
+    loading: false,         // Trạng thái đang xử lý API
+    error: null,            // Lưu lỗi nếu có
+    message: null,          // Lưu thông báo thành công
+    user: null,             // Lưu thông tin user đăng nhập
+    isAuthenticated: false, // Trạng thái đã đăng nhập hay chưa
   },
   reducers: {
+    // --- ĐĂNG KÝ ---
     registerRequest(state) {
       state.loading = true;
       state.error = null;
@@ -24,6 +33,8 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
+
+    // --- XÁC THỰC OTP ---
     otpVerificationRequest(state) {
       state.loading = true;
       state.error = null;
@@ -39,6 +50,8 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
+
+    // --- ĐĂNG NHẬP ---
     loginRequest(state) {
       state.loading = true;
       state.error = null;
@@ -54,6 +67,8 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
+
+    // --- ĐĂNG XUẤT ---
     logoutRequest(state) {
       state.loading = true;
       state.message = null;
@@ -71,6 +86,7 @@ const authSlice = createSlice({
       state.message = null;
     },
 
+    // --- LẤY THÔNG TIN USER (ME) ---
     getUserRequest(state) {
       state.loading = true;
       state.error = null;
@@ -87,9 +103,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
     },
 
-
-
-
+    // --- QUÊN MẬT KHẨU ---
     forgotPasswordRequest(state) {
       state.loading = true;
       state.error = null;
@@ -103,6 +117,8 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
+
+    // --- ĐẶT LẠI MẬT KHẨU (SAU KHI QUÊN) ---
     resetPasswordRequest(state) {
       state.loading = true;
       state.error = null;
@@ -119,6 +135,7 @@ const authSlice = createSlice({
       state.error = action.payload;
     },
 
+    // --- ĐỔI MẬT KHẨU (KHI ĐANG ĐĂNG NHẬP) ---
     updatePasswordRequest(state) {
       state.loading = true;
       state.error = null;
@@ -133,27 +150,28 @@ const authSlice = createSlice({
       state.error = action.payload;
     },
 
-
-
+    // --- RESET SLICE (XÓA STATE TẠM) ---
     resetAuthSlice(state) {
       state.error = null;
       state.loading = false;
       state.message = null;
+      // Không reset user/isAuthenticated để tránh bị logout oan
       state.user = state.user;
       state.isAuthenticated = state.isAuthenticated;
     },
-
-
   },
-
 });
 
+// Action reset state thủ công
 export const resetAuthSlice = () => (dispatch) => {
   dispatch(authSlice.actions.resetAuthSlice());
 };
 
+// ==========================================
+// CÁC HÀM GỌI API (THUNK ACTIONS)
+// ==========================================
 
-
+// Đăng ký tài khoản mới
 export const register = (data) => async (dispatch) => {
   dispatch(authSlice.actions.registerRequest());
 
@@ -169,6 +187,7 @@ export const register = (data) => async (dispatch) => {
     });
 };
 
+// Xác thực OTP để kích hoạt tài khoản
 export const otpVerification = (email, otp) => async (dispatch) => {
   dispatch(authSlice.actions.otpVerificationRequest());
 
@@ -186,7 +205,7 @@ export const otpVerification = (email, otp) => async (dispatch) => {
     });
 };
 
-
+// Đăng nhập
 export const login = (data) => async (dispatch) => {
   dispatch(authSlice.actions.loginRequest());
 
@@ -207,6 +226,7 @@ export const login = (data) => async (dispatch) => {
     });
 };
 
+// Đăng xuất
 export const logout = () => async (dispatch) => {
   dispatch(authSlice.actions.logoutRequest());
 
@@ -229,7 +249,7 @@ export const logout = () => async (dispatch) => {
     });
 };
 
-
+// Lấy thông tin user hiện tại (Load User)
 export const getUser = () => async (dispatch) => {
   dispatch(authSlice.actions.getUserRequest());
 
@@ -247,7 +267,7 @@ export const getUser = () => async (dispatch) => {
     });
 };
 
-
+// Yêu cầu quên mật khẩu (Gửi OTP về mail)
 export const forgotPassword = (email) => async (dispatch) => {
   dispatch(authSlice.actions.forgotPasswordRequest());
 
@@ -270,7 +290,7 @@ export const forgotPassword = (email) => async (dispatch) => {
     });
 };
 
-
+// Đặt lại mật khẩu mới (kèm token)
 export const resetPassword = (data, token) => async (dispatch) => {
   dispatch(authSlice.actions.resetPasswordRequest());
 
@@ -293,7 +313,7 @@ export const resetPassword = (data, token) => async (dispatch) => {
     });
 };
 
-
+// Đổi mật khẩu (User đang đăng nhập)
 export const updatePassword = (data) => async (dispatch) => {
   dispatch(authSlice.actions.updatePasswordRequest());
 
@@ -315,6 +335,5 @@ export const updatePassword = (data) => async (dispatch) => {
       );
     });
 };
-
 
 export default authSlice.reducer;

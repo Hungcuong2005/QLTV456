@@ -20,6 +20,7 @@ import {
 } from "chart.js";
 import logo from "../assets/logo2.png";
 
+// Đăng ký các thành phần cho ChartJS
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -32,12 +33,20 @@ ChartJS.register(
   ArcElement
 );
 
+/**
+ * Component UserDashboard (Trang chủ người dùng)
+ * - Hiển thị biểu đồ thống kê sách đang mượn/đã trả.
+ * - Các nút chức năng nhanh (Danh sách mượn, trả, khám phá).
+ * - Hiển thị câu quote ngẫu nhiên.
+ */
 const UserDashboard = ({ setSelectedComponent }) => {
+  // Lấy dữ liệu mượn sách từ Redux store
   const { userBorrowedBooks } = useSelector((state) => state.borrow);
 
   const [totalBorrowedBooks, setTotalBorrowedBooks] = useState(0);
   const [totalReturnedBooks, setTotalReturnedBooks] = useState(0);
 
+  // Effect: Tính toán số lượng sách đang mượn và đã trả
   useEffect(() => {
     const borrowing = userBorrowedBooks.filter((b) => b.returned === false);
     const returned = userBorrowedBooks.filter((b) => b.returned === true);
@@ -48,6 +57,7 @@ const UserDashboard = ({ setSelectedComponent }) => {
 
   const [quote, setQuote] = useState("");
 
+  // Danh sách các câu trích dẫn hay (Random Quote)
   const QUOTES = [
     "Sách là ngọn đèn sáng bất diệt của trí tuệ con người.",
     "Đọc sách không những để mở mang trí tuệ mà còn để nuôi dưỡng tâm hồn.",
@@ -61,12 +71,14 @@ const UserDashboard = ({ setSelectedComponent }) => {
     "Hành trình đọc sách nuôi dưỡng sự trưởng thành, mở ra con đường hướng tới sự xuất sắc và hoàn thiện bản thân.",
   ];
 
+  // Chọn ngẫu nhiên 1 câu quote khi component mount
   useEffect(() => {
     const randomQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
     setQuote(randomQuote);
   }, []);
 
-  // ChartJS dùng màu hex trực tiếp
+  // Cấu hình dữ liệu cho biểu đồ tròn (Pie Chart)
+  // Màu chủ đạo: #C41526 (đỏ) vs #7A0E18 (đỏ đậm)
   const data = {
     labels: ["Sách đang mượn", "Sách đã trả"],
     datasets: [
@@ -94,6 +106,7 @@ const UserDashboard = ({ setSelectedComponent }) => {
               />
             </div>
 
+            {/* CHÚ THÍCH (LEGEND) & LOGO */}
             <div className="flex items-center p-8 w-full sm:w-[400px] xl:w-fit mr-5 xl:p-3 2xl:p-6 gap-5 h-fit xl:min-h-[150px] bg-white xl:flex-1 rounded-lg border-l-4 border-[#C41526]">
               <img
                 src={logo}
@@ -118,13 +131,15 @@ const UserDashboard = ({ setSelectedComponent }) => {
             </div>
           </div>
 
-          {/* BÊN PHẢI: NỘI DUNG (Giống AdminDashboard) */}
+          {/* BÊN PHẢI: CÁC NÚT CHỨC NĂNG & QUOTE */}
           <div className="flex flex-[4] flex-col gap-7 lg:gap-16 lg:px-7 lg:py-5 justify-between xl:min-h-[85.5vh]">
             <div className="flex flex-col-reverse lg:flex-row gap-7 flex-[4]">
               <div className="flex flex-col gap-7 flex-1">
-                {/* 2 HÀNG CARD - GRID CĂN CHUẨN */}
+
+                {/* GRID 2 CỘT CHO CÁC CARD */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-7">
-                  {/* Sách đang mượn */}
+
+                  {/* Nút: Sách đang mượn */}
                   <button
                     type="button"
                     onClick={() => setSelectedComponent({ key: "My Borrowed Books", filter: "nonReturned" })}
@@ -139,7 +154,7 @@ const UserDashboard = ({ setSelectedComponent }) => {
                     </p>
                   </button>
 
-                  {/* Sách đã trả */}
+                  {/* Nút: Sách đã trả */}
                   <button
                     type="button"
                     onClick={() => setSelectedComponent({ key: "My Borrowed Books", filter: "returned" })}
@@ -154,7 +169,7 @@ const UserDashboard = ({ setSelectedComponent }) => {
                     </p>
                   </button>
 
-                  {/* Khám phá kho sách */}
+                  {/* Nút: Khám phá kho sách */}
                   <button
                     type="button"
                     onClick={() => setSelectedComponent("Books")}
@@ -169,14 +184,13 @@ const UserDashboard = ({ setSelectedComponent }) => {
                     </p>
                   </button>
 
-                  {/* Ô trống để canh đúng cột phải */}
+                  {/* Div ẩn để căn bố cục Grid */}
                   <div className="hidden lg:block" />
                 </div>
               </div>
             </div>
 
-
-            {/* Quote */}
+            {/* PHẦN HIỂN THỊ QUOTE */}
             <div className="hidden xl:flex bg-white p-7 text-lg sm:text-xl xl:text-3xl 2xl:text-4xl min-h-52 font-semibold relative flex-[3] justify-center items-center rounded-2xl border border-[#FDE8EA] text-center">
               <h4 className="overflow-y-hidden text-[#C41526] italic px-4">
                 "{quote}"
