@@ -158,6 +158,9 @@ const Catalog = () => {
                     Email
                   </th>
                   <th className="px-4 py-3 text-left text-base font-bold text-[#C41526]">
+                    Tên sách
+                  </th>
+                  <th className="px-4 py-3 text-left text-base font-bold text-[#C41526]">
                     Giá
                   </th>
                   <th className="px-4 py-3 text-left text-base font-bold text-[#C41526]">
@@ -183,6 +186,10 @@ const Catalog = () => {
                     <td className="px-4 py-2">{book?.user?.name}</td>
 
                     <td className="px-4 py-2">{book?.user?.email}</td>
+
+                    <td className="px-4 py-2 font-medium text-gray-900">
+                      {book?.book?.title || "Không rõ danh sách"}
+                    </td>
 
                     <td className="px-4 py-2">
                       {typeof book.price === "number"
